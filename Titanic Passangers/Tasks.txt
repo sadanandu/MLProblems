@@ -1,0 +1,25 @@
+Tasks
+1. Take care of the missing data
+-> We can handle missing data in multiple ways.
+   a. Removing the records with missing data could be easiest option but that is not a good one as we lose data.
+   b. Replacing missing data with some values. This is sometimes called imputing.
+      We can replace missing value with either mean/median of the present values, value randomly selected from another record, value 
+	  returned by another model. We can also use a default value depending on context. We have to remember that whatever logic we follow for imputing training
+      data set, same logic needs to be followed for predicting/test dataset.
+   
+->Imputing or filling the missing data can be done in multiple ways
+  a. Using Pandas DataFrame APIs
+  b. Using sklearn.preprocessing.Imputer class
+  
+
+2. Handle categorical data
+-> To handle categorical data we need to transform data to to enums. For that LableEncoder from sklearn can be used
+   Since ML algorithms understand only numbers , they might consider enums in ascending or descending order, which would be wrong.
+   Using OneHotEncoder which transforms a categorical independent variable into dummy variables.
+   Thus making it useful in ML model.
+   Categorical columns to be handled = Sex, pclass, Sibsp, Parch, Embarked
+   
+3. 
+   
+   
+   

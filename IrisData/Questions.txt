@@ -1,0 +1,10 @@
+Questions on IrisData problem
+
+1.What are the common steps to follow when working on ML project?
+2.Common libraries required for ML project?
+3.Pandas  DataFrame must know APIs
+4. Plotting must know APIs
+5.What is K-fold cross validation
+6. What is accuracy_score?
+7. What is confusion matrix and how to interpret it?
+8.What is Classification report?
