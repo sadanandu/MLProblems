@@ -1,6 +1,9 @@
 Questions on IrisData problem
 
 1.What are the common steps to follow when working on ML project?
+-> 1. Data Preprocessing i.e. handling of missing/invalid data, converting categorical data i.e. data which can be divided into groups.
+   2. Training model with training data
+   3. Validating model with test data, improving the results by modifying the model
 2.Common libraries required for ML project?
 -> Find it here https://www.kdnuggets.com/2015/11/seven-steps-machine-learning-python.html
 3.Pandas  DataFrame must know APIs
