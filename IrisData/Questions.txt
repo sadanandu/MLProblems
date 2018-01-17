@@ -10,6 +10,10 @@ Questions on IrisData problem
 3.Pandas  DataFrame must know APIs
 4. Plotting must know APIs
 5.What is K-fold cross validation
+   types of prediction error: Bias Error, Variance Error, Unreducible error
+   Bias vs Variance  https://elitedatascience.com/bias-variance-tradeoff
+   Underfitting vs Overfitting
+   Cross validation
 6. What is accuracy_score?
 7. What is confusion matrix and how to interpret it?
 8.What is Classification report?
