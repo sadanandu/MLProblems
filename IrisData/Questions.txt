@@ -17,3 +17,25 @@ Questions on IrisData problem
 6. What is accuracy_score?
 7. What is confusion matrix and how to interpret it?
 8.What is Classification report?
+9. Classification or regression?
+  This should be the first step in machine learning.
+  It needs to be decided whether you are dealing with an regression problem or classification problem.
+  Depending on that models need to be decided. 
+  
+  Both predict values
+classification predicts discrete value or label whereas regression predicts continuous value. When classificaion algo
+predicts a continuous value then it could be in the form of probability
+skill of classification algo can be measured with accuracy
+skill of regression algorithm can be measured with root mean squared error(RMSE)
+
+Algorithms for classification
+Decision Trees
+Logistic Regression
+Naive Bayes
+K Nearest Neighbors
+Linear SVC (Support vector Classifier)
+
+Regression Algorithms
+Linear Regression
+Regression Trees(e.g. Random Forest)
+Support Vector Regression (SVR) 
