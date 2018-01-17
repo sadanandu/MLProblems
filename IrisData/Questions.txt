@@ -1,10 +1,41 @@
 Questions on IrisData problem
 
 1.What are the common steps to follow when working on ML project?
+-> 1. Data Preprocessing i.e. handling of missing/invalid data, converting categorical data i.e. data which can be divided into groups.
+   2. Training model with training data
+   3. Validating model with test data, improving the results by modifying the model
 2.Common libraries required for ML project?
+-> Find it here https://www.kdnuggets.com/2015/11/seven-steps-machine-learning-python.html
+-> https://medium.com/activewizards-machine-learning-company/top-15-python-libraries-for-data-science-in-in-2017-ab61b4f9b4a7
 3.Pandas  DataFrame must know APIs
 4. Plotting must know APIs
 5.What is K-fold cross validation
+   types of prediction error: Bias Error, Variance Error, Unreducible error
+   Bias vs Variance  https://elitedatascience.com/bias-variance-tradeoff
+   Underfitting vs Overfitting
+   Cross validation
 6. What is accuracy_score?
 7. What is confusion matrix and how to interpret it?
 8.What is Classification report?
+9. Classification or regression?
+  This should be the first step in machine learning.
+  It needs to be decided whether you are dealing with an regression problem or classification problem.
+  Depending on that models need to be decided. 
+  
+  Both predict values
+classification predicts discrete value or label whereas regression predicts continuous value. When classificaion algo
+predicts a continuous value then it could be in the form of probability
+skill of classification algo can be measured with accuracy
+skill of regression algorithm can be measured with root mean squared error(RMSE)
+
+Algorithms for classification
+Decision Trees
+Logistic Regression
+Naive Bayes
+K Nearest Neighbors
+Linear SVC (Support vector Classifier)
+
+Regression Algorithms
+Linear Regression
+Regression Trees(e.g. Random Forest)
+Support Vector Regression (SVR) 
