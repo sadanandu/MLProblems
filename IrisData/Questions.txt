@@ -15,6 +15,7 @@ Questions on IrisData problem
    Underfitting vs Overfitting
    Cross validation
 6. What is accuracy_score?
+  How many records are correctly classfied by algortihm. 
 7. What is confusion matrix and how to interpret it?
 8.What is Classification report?
 9. Classification or regression?
@@ -39,3 +40,9 @@ Regression Algorithms
 Linear Regression
 Regression Trees(e.g. Random Forest)
 Support Vector Regression (SVR) 
+
+10. Why we need feature scaling?
+Scaling ensures that just because some features are big it won't lead to using them as a main predictor.
+MEthods:
+Rescaling, mean normalization i.e. x= (x-mean(x))/max(x)-min(x)
+standardization : x = (x- mean(x))/standard deviation(x)
