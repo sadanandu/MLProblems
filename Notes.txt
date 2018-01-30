@@ -1,0 +1,37 @@
+Feature scaling:
+Scaling ensures that just because some features are big it won't lead to using them as a main predictor.
+MEthods:
+Rescaling, mean normalization i.e. x= (x-mean(x))/max(x)-min(x)
+standardization : x = (x- mean(x))/standard deviation(x)
+
+classification vs regression
+Both predict values
+classification predicts discrete value or label whereas regression predicts continuous value. When classificaion algo
+predicts a continuous value then it could be in the form of probability
+skill of classification algo can be measured with accuracy
+skill of regression algorithm can be measured with root mean squared error(RMSE)
+
+Algorithms for classification
+Decision Trees
+Logistic Regression
+Naive Bayes
+K Nearest Neighbors
+Linear SVC (Support vector Classifier)
+
+Regression Algorithms
+Linear Regression
+Regression Trees(e.g. Random Forest)
+Support Vector Regression (SVR) 
+
+Comparing classification algorithms
+1. False Positive(Type 1 error telling a man that you are pregnant) and false negative(Type 2 error telling a pregnant woman that youare not pregnant)
+
+
+
+
+Ensemble learning- Using multiple machine learning algorithms and create a parent algorithm to solve problems. e.g. Random Forest
+Random forest runs decision tree algorithms multiple times
+->For a randomly selected subset of data create a decision tree, repeat this multiple times.
+->Pure performance with interpretability
+
+   
