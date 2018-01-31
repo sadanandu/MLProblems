@@ -19,7 +19,42 @@ Tasks
    Thus making it useful in ML model.
    Categorical columns to be handled = Sex, pclass, Sibsp, Parch, Embarked
    
-3. 
-   
+3. Feature engineering
+
+	a. WasWithFamily?
+
+		if SibSp + Parch > 0 then True
+
+		else False
+
+	b. HadBenefitOfParentalSupport?
+
+	   if age < 20 and Parch > 0 then True
+
+	   else: False
+
+	c. HadSupportOfYoungSiblings?
+
+	   Not Sure if this helps
+
+	d. HadSpouseOnBoard? 
+
+	   Not sure if this helps
+
+	   if age > 18  and title does not include Master/Miss/Mlle then you might be married:
+
+		   if SibSp == 1: 
+
+			  then True
+
+		   else
+
+			  False
+
+	e. KnewTheWayAroundInTitanic? If you embarked on Southampton then you have been on ship for almost a week compared to people embarking later, so you know the way around
+
+	   if embrked from southampton then True
+
+	   else False  
    
    

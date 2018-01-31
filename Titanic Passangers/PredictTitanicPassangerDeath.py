@@ -91,13 +91,16 @@ def remove_unnecessary_data(dataframe):
     
     #Removing name column it is not useful for now and making lot of problems
     dataframe = dataframe.drop('Name', axis = 1)
+    dataframe = dataframe.drop('Parch', axis = 1)
+    dataframe = dataframe.drop('SibSp', axis = 1)
+    dataframe = dataframe.drop('Embarked', axis = 1)
     return dataframe
 
 def get_independent_and_depedent_variables(dataframe):
     return dataframe['Survived'], dataframe.drop('Survived', axis=1)
 
 def handle_categorical_data(dataframe, label_encoder_objects=None ):
-    categorical_columns = ['Pclass', 'Sex', 'Embarked']
+    categorical_columns = ['Pclass', 'Sex', 'WasWithFamily', 'HadParentalSupport', 'KnewTheWayAroundInTitanic']
     if not label_encoder_objects:
         label_encoder_objects = {}
     for each_column in categorical_columns:
@@ -114,7 +117,7 @@ def handle_categorical_data(dataframe, label_encoder_objects=None ):
     # so if categorical_columns above change then this list will also
     # change
     #print(dataframe.columns)
-    onehotencoder_obj = OneHotEncoder(categorical_features = [1, 2, 7])
+    onehotencoder_obj = OneHotEncoder(categorical_features = [1, 2, 5, 6, 7])
     numpy_array = onehotencoder_obj.fit_transform(dataframe).toarray()
     #print(type(dataframe))
     return pandas.DataFrame(numpy_array), label_encoder_objects
@@ -195,6 +198,30 @@ def test_out_all_models(X, Y):
         print(each_model + msg)
         print(metrics.accuracy_score(Y, Y_pred))
         print(metrics.confusion_matrix(Y, Y_pred))
+
+def create_new_features(X_train):
+    was_with_family = []
+    had_parental_support = []
+    knew_the_way_around_in_titanic = []
+    for index, each in X_train.iterrows():
+        if each['SibSp'] + each['Parch'] > 0:
+            was_with_family.append(True)
+        else:
+            was_with_family.append(False)
+        if each['Age'] < 20 and each['Parch'] > 0:
+            had_parental_support.append(True)
+        else:
+            had_parental_support.append(False)
+        if each['Embarked'] == 'S':
+            knew_the_way_around_in_titanic.append(True)
+        else:
+            knew_the_way_around_in_titanic.append(False)
+    X_train = X_train.assign(WasWithFamily = pandas.Series(was_with_family))
+    X_train = X_train.assign(HadParentalSupport = pandas.Series(had_parental_support))
+    X_train = X_train.assign(KnewTheWayAroundInTitanic = pandas.Series(knew_the_way_around_in_titanic))
+    #print(X_train['WasWithFamily'])
+    print(X_train.columns)
+    return X_train
     
     
 def get_trained_random_forest_classifier(X, Y):
@@ -225,25 +252,28 @@ train_file_path = "C:\\Machine Learning\\MLProblems\\Titanic Passangers\\train.c
 dataframe = pandas.read_csv(train_file_path)
 Y_train, X_train = get_independent_and_depedent_variables(dataframe)
 #print(dataframe.isnull().sum())
-X_train = remove_unnecessary_data(X_train)
-print('after removing',  X_train.columns)
+
 X_train = handle_missing_data(X_train)
 print('after missing',  X_train.columns)
+X_train = create_new_features(X_train)
+X_train = remove_unnecessary_data(X_train)
+print('after removing',  X_train.columns)
 X_train, lable_encoder_objects = handle_categorical_data(X_train)
 print('after categorical',  X_train.columns)
 #print(X_train)
 #test_out_all_models(X_train, Y_train)
 
 clf = get_trained_random_forest_classifier(X_train, Y_train)
-
-test_file_path = "C:\\Machine Learning\\MLProblems\\Titanic Passangers\\test.csv"
+print(clf)
+'''test_file_path = "C:\\Machine Learning\\MLProblems\\Titanic Passangers\\test.csv"
 dataframe = pandas.read_csv(test_file_path)
 #Y_test, X_test = get_independent_and_depedent_variables(dataframe)
 
-X_test = remove_unnecessary_data(dataframe)
-print('after removing',  X_test.columns)
-X_test = handle_missing_data(X_test)
+X_test = handle_missing_data(dataframe)
 print('after missing',  X_test.columns)
+X_test = create_new_features(X_test)
+X_test = remove_unnecessary_data(X_test)
+print('after removing',  X_test.columns)
 X_test, _ = handle_categorical_data(X_test, lable_encoder_objects)
 print('after categorical',  X_test.columns)
 
@@ -252,7 +282,7 @@ result_file_path = "C:\\Machine Learning\\MLProblems\\Titanic Passangers\\result
 d = [(a,b) for a, b in zip(dataframe['PassengerId'], Y_pred)]
 result = pandas.DataFrame(d, columns=['PassengerId', 'Survived'])
 print(result)
-result.to_csv(result_file_path, header=['PassengerId', 'Survived'], index=False)
+result.to_csv(result_file_path, header=['PassengerId', 'Survived'], index=False)'''
 
 
 

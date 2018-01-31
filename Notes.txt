@@ -34,4 +34,8 @@ Random forest runs decision tree algorithms multiple times
 ->For a randomly selected subset of data create a decision tree, repeat this multiple times.
 ->Pure performance with interpretability
 
+caries-> cavity keed
+carious lesion -> keed below teeth
+
+
    
