@@ -18,7 +18,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.svm import SVC
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder, Imputer
-from sklearn.metrics import mean_squared_error, r2_score, accuracy_score
+from sklearn.metrics import mean_squared_error, r2_score, accuracy_score, classification_report
 
 # TransformerMixin is base class for all sklearn transformers
 from sklearn.base import TransformerMixin
@@ -94,13 +94,15 @@ def remove_unnecessary_data(dataframe):
     dataframe = dataframe.drop('Parch', axis = 1)
     dataframe = dataframe.drop('SibSp', axis = 1)
     dataframe = dataframe.drop('Embarked', axis = 1)
+    #dataframe = dataframe.drop('Pclass', axis = 1)
+
     return dataframe
 
 def get_independent_and_depedent_variables(dataframe):
     return dataframe['Survived'], dataframe.drop('Survived', axis=1)
 
 def handle_categorical_data(dataframe, label_encoder_objects=None ):
-    categorical_columns = ['Pclass', 'Sex', 'WasWithFamily', 'HadParentalSupport', 'KnewTheWayAroundInTitanic']
+    categorical_columns = ['Sex', 'WasWithFamily', 'KnewTheWayAroundInTitanic', 'StayedInCabin']
     if not label_encoder_objects:
         label_encoder_objects = {}
     for each_column in categorical_columns:
@@ -117,11 +119,49 @@ def handle_categorical_data(dataframe, label_encoder_objects=None ):
     # so if categorical_columns above change then this list will also
     # change
     #print(dataframe.columns)
-    onehotencoder_obj = OneHotEncoder(categorical_features = [1, 2, 5, 6, 7])
+    onehotencoder_obj = OneHotEncoder(categorical_features = [2, 5, 6, 7])
     numpy_array = onehotencoder_obj.fit_transform(dataframe).toarray()
     #print(type(dataframe))
     return pandas.DataFrame(numpy_array), label_encoder_objects
 
+def create_new_features(X_train):
+    was_with_family = []
+    had_parental_support = []
+    knew_the_way_around_in_titanic = []
+    stayed_in_cabin = []
+    for index, each in X_train.iterrows():
+        if each['SibSp'] + each['Parch'] > 0:
+            was_with_family.append(True)
+        else:
+            was_with_family.append(False)
+        if each['Age'] < 20 and each['Parch'] > 0:
+            had_parental_support.append(True)
+        else:
+            had_parental_support.append(False)
+        if each['Embarked'] == 'S':
+            knew_the_way_around_in_titanic.append(True)
+        else:
+            knew_the_way_around_in_titanic.append(False)
+        if each['Cabin'] != '':
+            stayed_in_cabin.append(True)
+        else:
+            stayed_in_cabin.append(False)
+    X_train = X_train.assign(WasWithFamily = pandas.Series(was_with_family))
+    #X_train = X_train.assign(HadParentalSupport = pandas.Series(had_parental_support))
+    X_train = X_train.assign(KnewTheWayAroundInTitanic = pandas.Series(knew_the_way_around_in_titanic))
+    X_train = X_train.assign(StayedInCabin = pandas.Series(stayed_in_cabin))
+    #print(X_train['WasWithFamily'])
+    print(X_train.columns)
+    return X_train
+
+def remove_feature(X_train):
+    X_train = X_train.drop(6, axis = 1)
+    X_train = X_train.drop(3, axis = 1)
+    X_train = X_train.drop(4, axis = 1)
+    #X_train = X_train.drop(2, axis = 1)
+    X_train = X_train.drop(5, axis = 1)
+    #X_train = X_train.drop(8, axis = 1)
+    return X_train
 #No need to split into train-test set because we are already getting training set only.
 def get_test_train_data_by_splitting(X, Y):
     from sklearn.model_selection import train_test_split
@@ -198,36 +238,25 @@ def test_out_all_models(X, Y):
         print(each_model + msg)
         print(metrics.accuracy_score(Y, Y_pred))
         print(metrics.confusion_matrix(Y, Y_pred))
+        print(classification_report(Y, Y_pred))
 
-def create_new_features(X_train):
-    was_with_family = []
-    had_parental_support = []
-    knew_the_way_around_in_titanic = []
-    for index, each in X_train.iterrows():
-        if each['SibSp'] + each['Parch'] > 0:
-            was_with_family.append(True)
-        else:
-            was_with_family.append(False)
-        if each['Age'] < 20 and each['Parch'] > 0:
-            had_parental_support.append(True)
-        else:
-            had_parental_support.append(False)
-        if each['Embarked'] == 'S':
-            knew_the_way_around_in_titanic.append(True)
-        else:
-            knew_the_way_around_in_titanic.append(False)
-    X_train = X_train.assign(WasWithFamily = pandas.Series(was_with_family))
-    X_train = X_train.assign(HadParentalSupport = pandas.Series(had_parental_support))
-    X_train = X_train.assign(KnewTheWayAroundInTitanic = pandas.Series(knew_the_way_around_in_titanic))
-    #print(X_train['WasWithFamily'])
-    print(X_train.columns)
-    return X_train
     
     
 def get_trained_random_forest_classifier(X, Y):
-    clf = RandomForestClassifier()
+    clf = RandomForestClassifier(n_estimators= 30)
     clf.fit(X, Y)
     return clf
+
+def get_trained_decision_tree_classifier(X, Y):
+    clf = DecisionTreeClassifier()
+    clf.fit(X, Y)
+    return clf
+
+def get_trained_SVC_classifier(X, Y):
+    clf = SVC()
+    clf.fit(X, Y)
+    return clf
+
 
 def show_decision_tree(X, Y):
     from sklearn import tree
@@ -260,12 +289,24 @@ X_train = remove_unnecessary_data(X_train)
 print('after removing',  X_train.columns)
 X_train, lable_encoder_objects = handle_categorical_data(X_train)
 print('after categorical',  X_train.columns)
+X_train = remove_feature(X_train)
 #print(X_train)
 #test_out_all_models(X_train, Y_train)
 
+######################################################################
+#clf = get_trained_decision_tree_classifier(X_train, Y_train)
+#Decision tree classifier actually resulted in poor accuracy on test data.
+
+#####################################################################
+#####################################################################
+#clf = get_trained_SVC_classifier(X_train, Y_train)
+# SVC also resulted in a poorer accuracy score
+#####################################################################
 clf = get_trained_random_forest_classifier(X_train, Y_train)
-print(clf)
-'''test_file_path = "C:\\Machine Learning\\MLProblems\\Titanic Passangers\\test.csv"
+values = sorted(zip(X_train.columns, clf.feature_importances_), key=lambda x: x[1] * -1)
+#print(values)
+#print(clf)
+test_file_path = "C:\\Machine Learning\\MLProblems\\Titanic Passangers\\test.csv"
 dataframe = pandas.read_csv(test_file_path)
 #Y_test, X_test = get_independent_and_depedent_variables(dataframe)
 
@@ -276,13 +317,11 @@ X_test = remove_unnecessary_data(X_test)
 print('after removing',  X_test.columns)
 X_test, _ = handle_categorical_data(X_test, lable_encoder_objects)
 print('after categorical',  X_test.columns)
+X_test = remove_feature(X_test)
 
 Y_pred = clf.predict(X_test)
 result_file_path = "C:\\Machine Learning\\MLProblems\\Titanic Passangers\\result.csv"
 d = [(a,b) for a, b in zip(dataframe['PassengerId'], Y_pred)]
 result = pandas.DataFrame(d, columns=['PassengerId', 'Survived'])
 print(result)
-result.to_csv(result_file_path, header=['PassengerId', 'Survived'], index=False)'''
-
-
-
+result.to_csv(result_file_path, header=['PassengerId', 'Survived'], index=False)
