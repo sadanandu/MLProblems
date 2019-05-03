@@ -1,0 +1,195 @@
+---
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.1'
+      jupytext_version: 1.1.1
+  kernelspec:
+    display_name: Python 3
+    language: python
+    name: python3
+---
+
+## Practicing pandas 
+
+```{python}
+import pandas as pd
+```
+
+```{python}
+file_path = "C:\MyDocs\Machine learning\Chicago_Crime_Data-v2.csv"
+```
+
+```{python}
+df = pd.read_csv(file_path)
+```
+
+```{python}
+df.head()
+```
+
+### Get all column names
+
+```{python}
+df.columns
+```
+
+```{python}
+list(df.columns)
+```
+
+## Find out dimensions of the data frame
+
+```{python}
+df.shape
+```
+
+## Explore DataFrame 
+
+```{python}
+df.describe()
+```
+
+### It seems although there are 533 rows not all of them have values e.g. COMMUNITY_AREA_NUMBER has 490 values. Let's find out is it really the case
+
+```{python}
+df.value_counts()
+#did not work
+```
+
+```{python}
+df['COMMUNITY_AREA_NUMBER'].value_counts()
+```
+
+```{python}
+df['COMMUNITY_AREA_NUMBER'].isnull().value_counts()
+```
+
+### Let's find out similar data for all columns
+
+```{python}
+df.isnull()
+```
+
+```{python}
+df.isnull().value_counts()
+```
+
+```{python}
+type(df['COMMUNITY_AREA_NUMBER'])
+```
+
+```{python}
+'value_counts' in dir(df['COMMUNITY_AREA_NUMBER'])
+```
+
+## 'value_counts' method is available only on pandas series
+
+```{python}
+for each_col in df.columns:
+    print(df[each_col].isnull().value_counts())
+```
+
+```{python}
+for each_col in df.columns:
+    stat = df[each_col].isnull().value_counts()
+    print(stat)
+    print(type(stat))
+    print(stat.index)
+    break
+```
+
+```{python}
+#resetting index
+for each_col in df.columns:
+    stat = df[each_col].isnull().value_counts()
+    #print(stat)
+    #print(type(stat))
+    print(stat.reset_index())
+    print(stat.index)
+    break
+```
+
+```{python}
+#print only columns having nulls and their counts
+
+for each_col in df.columns:
+    stat = df[each_col].isnull().value_counts()
+    if any(stat.index):
+        print("{col_name} has {cnt} null values".format(col_name=each_col, cnt=stat[True]))
+
+```
+
+## Now let's drop null values
+
+```{python}
+newdf = df.dropna()
+```
+
+```{python}
+def get_columns_with_null_values(df):
+    for each_col in df.columns:
+        stat = df[each_col].isnull().value_counts()
+        if any(stat.index):
+            print("{col_name} has {cnt} null values".format(col_name=each_col, cnt=stat[True]))
+
+#get_columns_with_null_values(newdf)
+print(type(df.isnull()))
+
+        
+```
+
+```{python}
+df.dropna().shape
+```
+
+```{python}
+df.dropna(inplace=True)
+```
+
+```{python}
+df.shape
+```
+
+```{python}
+any(df.isnull())
+```
+
+## Does this mean there are null values present? Let's find out
+
+```{python}
+get_columns_with_null_values(df)
+#No output
+```
+
+```{python}
+for each in df.isnull():
+    print(each)
+    print(any(each))
+    break
+```
+
+```{python}
+df.isnull().__iter__
+```
+
+```{python}
+for each in df.isnull():
+    print(each, any(df.isnull()[each]))
+    #print(df.isnull()[each])
+```
+
+```{python}
+for each in df:
+    print(each, type(each))
+    break
+```
+
+## Before using 'any' or 'all' make sure what is the iterator returning. 
+## For DataFrame the iterator returns column names, so dont directly use 'any' or 'all' on it.
+
+```{python}
+
+```
