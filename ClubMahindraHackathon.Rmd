@@ -1,0 +1,907 @@
+---
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.1'
+      jupytext_version: 1.1.1
+  kernelspec:
+    display_name: Python 3
+    language: python
+    name: python3
+---
+
+```{python}
+import pandas as pd 
+```
+
+```{python}
+file_path = r"C:\MyDocs\Machine learning\Club Mahindra\train_5CLrC8b\train.csv"
+df = pd.read_csv(file_path)
+```
+
+```{python}
+df.shape
+```
+
+## starting Exploratory data analysis and noting down things to concentrate on
+
+```{python}
+df.describe()
+```
+
+```{python}
+import sys
+sys.path.append("C:\MyDocs\Machine learning")
+```
+
+```{python}
+import ml_utils
+```
+
+```{python}
+ml_utils.get_columns_with_null_values(df)
+```
+
+## There is no way to predict state_code_residence i.e. Resident state of member hence skipping the column from analysis.
+
+## As for the column season_holidayed_code , we can take median of the dataset and fill it in place of nulls
+
+```{python}
+cmdf = df.drop(columns=['state_code_residence'])
+```
+
+```{python}
+cmdf.shape
+```
+
+```{python}
+cmdf['season_holidayed_code'].value_counts()
+```
+
+```{python}
+cmdf['season_holidayed_code'] = cmdf['season_holidayed_code'].fillna(2.0)
+```
+
+```{python}
+cmdf.shape
+```
+
+```{python}
+ml_utils.get_columns_with_null_values(cmdf)
+```
+
+```{python}
+df['state_code_residence'].value_counts()
+```
+
+## Randomly alloting state id might be possible but not sure if that will be helpful
+
+
+## Let's explore relations between features and target graphically one by one
+
+
+## Need to transform column checkin_date to month and year so as look relation year wise and month wise
+
+```{python}
+import time
+
+```
+
+```{python}
+cmdf['Month'] = list(map(lambda x: time.strptime(x, "%d/%m/%y").tm_mon, cmdf['checkin_date']))
+
+```
+
+```{python}
+cmdf['Year'] = list(map(lambda x: time.strptime(x, "%d/%m/%y").tm_year, cmdf['checkin_date']))
+```
+
+```{python}
+cmdf.drop(columns=['checkin_date'], inplace=True)
+```
+
+```{python}
+cmdf.shape
+```
+
+```{python}
+cmdf[['Month', 'amount_spent_per_room_night_scaled']].groupby('Month').mean()
+```
+
+```{python}
+cmdf[['Month', 'amount_spent_per_room_night_scaled']].groupby('Month').sum()
+```
+
+```{python}
+cmdf[['Month', 'amount_spent_per_room_night_scaled']].groupby('Month').std()
+```
+
+```{python}
+cmdf[['Month', 'amount_spent_per_room_night_scaled']].groupby('Month').describe()
+```
+
+```{python}
+# %matplotlib inline 
+
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+
+mpl.style.use('ggplot') # optional: for ggplot-like style
+
+# check for latest version of Matplotlib
+print ('Matplotlib version: ', mpl.__version__) # >= 2.0.0
+
+```
+
+```{python tags=c("Wrong")}
+cmdf[['Month', 'amount_spent_per_room_night_scaled']].groupby('Month')['amount_spent_per_room_night_scaled'].plot(figsize=(20,8))
+```
+
+```{python tags=c("Wrong")}
+grouped = cmdf[['Month', 'amount_spent_per_room_night_scaled']].groupby('Month')
+
+grouped.plot(kind= 'box', figsize=(20,8))
+plt.show()
+```
+
+```{python}
+cmdf.boxplot(column='amount_spent_per_room_night_scaled', by='Month', figsize=(20,10))
+plt.ylabel('Amount Spent')
+plt.show()
+
+```
+
+## This signifies that across Months the amount spent is similar i.e. there is no spike in amount spent in a paticular month.
+
+```{python}
+cmdf.boxplot(column='amount_spent_per_room_night_scaled', by='Year', figsize=(20,10))
+plt.ylabel('Amount Spent')
+plt.show()
+```
+
+## In years 2015,2016 2017, 2018 amount spent is increasing. For 2019 there seems a dip but that could be because 2019's data is less. 
+
+```{python}
+cmdf.boxplot(column='amount_spent_per_room_night_scaled', by='main_product_code', figsize=(20,10))
+plt.ylabel('Amount Spent')
+plt.show()
+```
+
+## product code 1 seems to have highest contribution to amount spent while product code 4 seems to have lowest contribution
+## Let's confirm this with other graphs
+
+```{python tags=c("Wrong")}
+cmdf[['main_product_code', 'amount_spent_per_room_night_scaled']].plot(kind='hist')
+```
+
+```{python}
+cmdf[['main_product_code', 'amount_spent_per_room_night_scaled']].plot(kind='hist', x='main_product_code', y='amount_spent_per_room_night_scaled')
+```
+
+```{python tags=c("Wrong")}
+cmdf[['main_product_code', 'amount_spent_per_room_night_scaled']].plot()
+```
+
+```{python}
+cmdf[['main_product_code', 'amount_spent_per_room_night_scaled']].head()
+```
+
+```{python}
+cmdf[['main_product_code', 'amount_spent_per_room_night_scaled']].plot(kind='area', stacked=False)
+```
+
+## Area plot is not the right plot to get any understanding here
+
+```{python}
+import numpy as np
+count, binedges = np.histogram(cmdf['amount_spent_per_room_night_scaled'])
+```
+
+```{python}
+binedges
+```
+
+```{python}
+prodrev = cmdf[['main_product_code', 'amount_spent_per_room_night_scaled']]
+```
+
+```{python}
+byproducttype = prodrev.groupby('main_product_code').sum()
+```
+
+```{python}
+byproducttype.plot(kind='pie', 
+                    figsize=(5, 6),
+                    autopct='%1.1f%%', # add in percentages
+                    startangle=90,     # start angle 90° (Africa)
+                    shadow=True,       # add shadow      
+                   subplots=True)
+plt.title('Amount spend per room night')
+```
+
+## since its amount spend per room night this is not the correct. Let's find out total spend and then plot a pie
+
+```{python}
+cmdf['Total'] = cmdf['amount_spent_per_room_night_scaled']*cmdf['roomnights']
+```
+
+```{python}
+prodrev = cmdf[['main_product_code', 'Total']]
+```
+
+```{python}
+byproducttype = prodrev.groupby('main_product_code').sum()
+```
+
+```{python}
+byproducttype.plot(kind='pie', 
+                    figsize=(5, 6),
+                    autopct='%1.1f%%', # add in percentages
+                    startangle=90,     # start angle 90° (Africa)
+                    shadow=True,       # add shadow      
+                   subplots=True)
+plt.title('Amount spent by product code')
+```
+
+```{python}
+monthlyrev = cmdf[['Month', 'Total']]
+bymonth = monthlyrev.groupby('Month').sum()
+bymonth.plot(kind='pie',
+                    figsize=(5, 6),
+                    autopct='%1.1f%%', # add in percentages
+                    startangle=90,     # start angle 90° (Africa)
+                    shadow=True,       # add shadow      
+                   subplots=True)
+plt.title('Amount spent Monthly')
+```
+
+```{python}
+monthlyrev = cmdf[['Year', 'Total']]
+byyear = monthlyrev.groupby('Year').sum()
+byyear.plot(kind='pie',
+                    figsize=(5, 6),
+                    autopct='%1.1f%%', # add in percentages
+                    startangle=90,     # start angle 90° (Africa)
+                    shadow=True,       # add shadow      
+                   subplots=True)
+plt.title('Amount spent Yearly')
+```
+
+```{python}
+monthlyrev = cmdf[['channel_code', 'Total']]
+bychannel = monthlyrev.groupby('channel_code').sum()
+bychannel.plot(kind='pie',
+                    figsize=(5, 6),
+                    autopct='%1.1f%%', # add in percentages
+                    startangle=90,     # start angle 90° (Africa)
+                    shadow=True,       # add shadow      
+                   subplots=True)
+plt.title('Amount spent by Channelcode')
+```
+
+```{python}
+persons_rev = cmdf[['total_pax', 'Total']]
+```
+
+```{python}
+for each in cmdf.loc[cmdf.total_pax == 0].index:
+    #cmdf['total_pax'][each] = cmdf['numberofadults'][each] + cmdf['numberofchildren'][each]
+    print(each)
+
+```
+
+```{python}
+cmdf.loc[cmdf.total_pax == 0]
+```
+
+```{python}
+persons_rev = cmdf[['total_pax', 'Total']]
+```
+
+```{python}
+persons_rev.plot(kind='hist', y= 'Total')
+```
+
+```{python}
+persons_rev['total_pax'].value_counts()
+```
+
+```{python}
+region = cmdf[['resort_region_code', 'Total']]
+byregion = region.groupby('resort_region_code').sum()
+byregion.plot(kind='pie',
+                    figsize=(5, 6),
+                    autopct='%1.1f%%', # add in percentages
+                    startangle=90,     # start angle 90° (Africa)
+                    shadow=True,       # add shadow      
+                   subplots=True)
+plt.title('Amount spent by RegionCode')
+```
+
+```{python}
+season = cmdf[['season_holidayed_code', 'Total']]
+byseason = season.groupby('season_holidayed_code').sum()
+byseason.plot(kind='pie',
+                    figsize=(5, 6),
+                    autopct='%1.1f%%', # add in percentages
+                    startangle=90,     # start angle 90° (Africa)
+                    shadow=True,       # add shadow      
+                   subplots=True)
+plt.title('Amount spent by seasonCode')
+```
+
+```{python}
+season.boxplot(column='Total', by='season_holidayed_code', figsize=(20,8))
+```
+
+```{python}
+season = cmdf[['season_holidayed_code', 'amount_spent_per_room_night_scaled']]
+season.boxplot(column='amount_spent_per_room_night_scaled', by='season_holidayed_code', figsize=(20,8))
+```
+
+```{python}
+season.plot(kind='hist', y='amount_spent_per_room_night_scaled')
+```
+
+```{python}
+season['season_holidayed_code'].value_counts()
+```
+
+```{python}
+cmdf['state_code_resort'].value_counts()
+```
+
+```{python}
+stateresorts = cmdf[['state_code_resort', 'Total']]
+bystate = stateresorts.groupby('state_code_resort').sum()
+bystate.plot(kind='pie',
+                    figsize=(5, 6),
+                    autopct='%1.1f%%', # add in percentages
+                    startangle=90,     # start angle 90° (Africa)
+                    shadow=True,       # add shadow      
+                   subplots=True)
+plt.title('Amount spent by StateCode')
+```
+
+```{python}
+cmdf['member_age_buckets'].value_counts()
+```
+
+```{python}
+agewise = cmdf[['member_age_buckets', 'Total']]
+byage = agewise.groupby('member_age_buckets').sum()
+byage.plot(kind='pie',
+                    figsize=(5, 6),
+                    autopct='%1.1f%%', # add in percentages
+                    startangle=90,     # start angle 90° (Africa)
+                    shadow=True,       # add shadow      
+                   subplots=True)
+plt.title('Amount spent by AgeBucket')
+```
+
+```{python}
+cmdf['booking_type_code'].value_counts()
+```
+
+```{python}
+booktype = cmdf[['booking_type_code', 'Total']]
+bybook = booktype.groupby('booking_type_code').sum()
+bybook.plot(kind='pie',
+                    figsize=(5, 6),
+                    autopct='%1.1f%%', # add in percentages
+                    startangle=90,     # start angle 90° (Africa)
+                    shadow=True,       # add shadow      
+                   subplots=True)
+plt.title('Amount spent by BookingType')
+```
+
+```{python}
+booktype = cmdf[['booking_type_code', 'amount_spent_per_room_night_scaled']]
+booktype.boxplot(column= 'amount_spent_per_room_night_scaled', by='booking_type_code')
+```
+
+```{python}
+cmdf['cluster_code'].value_counts()
+```
+
+```{python}
+clusterwise =cmdf[['cluster_code', 'Total']]
+bycluster = clusterwise.groupby('cluster_code').sum()
+bycluster.plot(kind='pie',
+                    figsize=(5, 6),
+                    autopct='%1.1f%%', # add in percentages
+                    startangle=90,     # start angle 90° (Africa)
+                    shadow=True,       # add shadow      
+                   subplots=True)
+plt.title('Amount spent by ClusterCode')
+```
+
+```{python}
+cmdf['reservationstatusid_code'].value_counts()
+```
+
+## Now trying Regression algorithm on selected columns
+
+```{python}
+cols = ['channel_code', 'main_product_code', 'resort_region_code', 'roomnights', 'season_holidayed_code',
+'state_code_resort', 'total_pax', 'member_age_buckets', 'cluster_code', 'amount_spent_per_room_night_scaled'
+]
+```
+
+```{python}
+data = cmdf[cols]
+```
+
+```{python}
+data.shape
+```
+
+```{python}
+Y, X = data['amount_spent_per_room_night_scaled'], data.drop(columns=['amount_spent_per_room_night_scaled'])
+```
+
+```{python}
+Y.head()
+```
+
+```{python}
+X.shape
+```
+
+```{python}
+X.head()
+```
+
+```{python}
+X['member_age_buckets'].value_counts()
+```
+
+```{python}
+from sklearn.preprocessing import LabelEncoder
+l = LabelEncoder()
+X['member_age_buckets'] = l.fit_transform(X['member_age_buckets'])
+```
+
+```{python}
+X['member_age_buckets'].value_counts()
+```
+
+```{python}
+#l.fit_transform(X['cluster_code'])
+X['cluster_code'].value_counts()
+```
+
+```{python}
+X['cluster_code'] = l.fit_transform(X['cluster_code'])
+```
+
+```{python}
+X['cluster_code'].value_counts()
+```
+
+```{python}
+X.head()
+```
+
+```{python}
+X['season_holidayed_code'].value_counts()
+#X['season_holidayed_code'].apply(lambda x: int(x))
+```
+
+```{python}
+X['season_holidayed_code'] = X['season_holidayed_code'].apply(lambda x: int(x))
+```
+
+```{python}
+X['season_holidayed_code'].value_counts()
+```
+
+```{python}
+X.head()
+```
+
+```{python}
+X = X.drop(columns=['state_code_resort'])
+```
+
+```{python}
+X.head()
+```
+
+```{python}
+X = X.drop(columns=['cluster_code'])
+```
+
+```{python}
+X.head()
+```
+
+```{python}
+X = pd.get_dummies(X, columns= ['channel_code', 'main_product_code', 'resort_region_code', 'season_holidayed_code', 'member_age_buckets'])
+```
+
+```{python}
+X.head()
+```
+
+```{python}
+X['amount_spent_per_room_night_scaled'] = Y
+```
+
+```{python}
+X.head()
+```
+
+```{python}
+import seaborn as sns
+import matplotlib.pyplot as plt
+sns.set(style="ticks", color_codes=True)
+```
+
+```{python}
+sns.catplot(x="channel_code", y="amount_spent_per_room_night_scaled", data=X);
+```
+
+```{python}
+sns.catplot(x="channel_code", y="amount_spent_per_room_night_scaled", kind='boxen', data=X.sort_values('channel_code'))
+```
+
+```{python}
+sns.catplot(x="channel_code", y="amount_spent_per_room_night_scaled", kind='boxen', hue='resort_region_code', data=X.sort_values('channel_code'))
+```
+
+```{python}
+sns.catplot(x="resort_region_code", y="amount_spent_per_room_night_scaled", kind='boxen', hue='season_holidayed_code', data=X.sort_values('channel_code'))
+```
+
+```{python}
+print(X.columns)
+print(Y.shape)
+from sklearn import linear_model
+from sklearn.model_selection import train_test_split
+regr = linear_model.LinearRegression()
+#Y, X = X['amount_spent_per_room_night_scaled'], X.drop(columns=['amount_spent_per_room_night_scaled'])
+#X_train, X_test, y_train, y_test = train_test_split(X,Y, test_size=.3, random_state=2)
+
+```
+
+```{python}
+X_train.shape
+```
+
+```{python}
+X_train.columns
+```
+
+```{python}
+X = pd.get_dummies(X, columns= ['channel_code', 'main_product_code', 'resort_region_code', 'season_holidayed_code', 'member_age_buckets'], drop_first=True)
+```
+
+```{python}
+X.shape
+```
+
+```{python}
+X_train, X_test, y_train, y_test = train_test_split(X,Y, test_size=.3, random_state=2)
+```
+
+```{python}
+X_train.shape
+```
+
+```{python}
+y_train.shape
+```
+
+```{python}
+regr.fit(X_train, y_train)
+# The coefficients
+print ('Coefficients: ', regr.coef_)
+print ('Intercept: ',regr.intercept_)
+```
+
+```{python}
+cols = ['channel_code', 'main_product_code', 'resort_region_code', 'roomnights', 'season_holidayed_code',
+'state_code_resort', 'total_pax', 'member_age_buckets', 'cluster_code', 'amount_spent_per_room_night_scaled'
+]
+```
+
+```{python}
+X, Y = data[['channel_code', 'main_product_code', 'resort_region_code', 'roomnights', 'season_holidayed_code', 'total_pax', 'member_age_buckets']], data['amount_spent_per_room_night_scaled']
+```
+
+```{python}
+X.shape
+```
+
+```{python}
+Y.shape
+```
+
+```{python}
+X.head()
+```
+
+```{python}
+l = LabelEncoder()
+X.loc[:, 'member_age_buckets'] = l.fit_transform(X['member_age_buckets'])
+
+```
+
+```{python}
+X.head()
+```
+
+```{python}
+X.loc[:, 'season_holidayed_code'] = X.loc[:, 'season_holidayed_code'].apply(lambda x: int(x))
+```
+
+```{python}
+X.head()
+```
+
+```{python}
+Y.head()
+```
+
+```{python}
+X = pd.get_dummies(X, columns = ['channel_code', 'main_product_code', 'resort_region_code', 'season_holidayed_code',
+'member_age_buckets'], drop_first=True)
+```
+
+```{python}
+X.head()
+```
+
+```{python}
+X_train, X_test , y_train, y_test = train_test_split(X,Y, test_size=.2, random_state=2 )
+```
+
+```{python}
+from sklearn.model_selection import LinearRegression
+```
+
+```{python}
+from sklearn import linear_model
+regr = linear_model.LinearRegression()
+```
+
+```{python}
+regr.fit(X_train, y_train)
+```
+
+```{python}
+regr.coef_
+```
+
+```{python}
+regr.intercept_
+```
+
+```{python}
+ypred = regr.predict(X_test)
+```
+
+```{python}
+from sklearn.metrics import mean_squared_error
+```
+
+```{python}
+100*mean_squared_error(y_test, ypred)
+```
+
+## Linear Regression produced RMSE*100 as 113.406 
+
+```{python}
+from sklearn import svm
+from sklearn.metrics import mean_squared_error
+'''
+for each_kernel in ['SVR', 'NuSVR','LinearSVR']:
+    svr = getattr(svm, 'SVR')(gamma='auto')
+    svr.fit(X_train,y_train)
+    ypred= svr.predict(X_test)
+    print(each_kernel, 100*mean_squared_error(y_test, ypred))'''
+
+    
+```
+
+```{python}
+def get_process_data():
+    X, Y = data[['channel_code', 'main_product_code', 'resort_region_code', 'roomnights', 'season_holidayed_code', 'total_pax', 'member_age_buckets']], data['amount_spent_per_room_night_scaled']
+    l = LabelEncoder()
+    X.loc[:, 'member_age_buckets'] = l.fit_transform(X['member_age_buckets'])
+    X.loc[:, 'season_holidayed_code'] = X.loc[:, 'season_holidayed_code'].apply(lambda x: int(x))
+    X = pd.get_dummies(X, columns = ['channel_code', 'main_product_code', 'resort_region_code', 'season_holidayed_code',
+    'member_age_buckets'], drop_first=True)
+    return X, Y
+X, Y = get_process_data()
+```
+
+```{python}
+import sys
+sys.path.append("C:\MyDocs\Machine learning")
+import ml_utils
+
+```
+
+```{python}
+file_path = r"C:\MyDocs\Machine learning\Club Mahindra\train_5CLrC8b\train.csv"
+df = ml_utils.get_data_from_file(file_path)
+```
+
+```{python}
+import ml_utils
+X, Y = ml_utils.split_columns_in_x_y(df)
+```
+
+```{python}
+X.head()
+```
+
+```{python}
+import pandas as pd
+df1 = pd.DataFrame({'a': [1,2,3],
+                   'b': [4,5,6],
+                   'c':[7,8,9]})
+```
+
+```{python}
+df1.loc[df1['a']% 2 == 0].index
+#df1['a'] = df1['c']-df1['b']
+```
+
+```{python}
+df1
+```
+
+```{python}
+df1
+```
+
+```{python}
+for each in X.loc[X.total_pax == 0].index:
+    X['total_pax'][each] = X['numberofadults'][each] + X['numberofchildren'][each]
+    print(each)
+```
+
+```{python}
+X.loc[X.total_pax == 0]
+```
+
+```{python}
+X.head()
+```
+
+```{python}
+X.drop(columns=['numberofadults', 'numberofchildren'], inplace=True)
+```
+
+```{python}
+X.head()
+```
+
+```{python}
+from sklearn.preprocessing import LabelEncoder
+```
+
+```{python}
+l = LabelEncoder()
+X['member_age_buckets'] = l.fit_transform(X['member_age_buckets'])
+
+```
+
+```{python}
+X.head()
+```
+
+```{python}
+X['season_holidayed_code'] = X['season_holidayed_code'].apply(lambda x: int(x))
+```
+
+```{python}
+X.loc[X['season_holidayed_code'].isna()]
+```
+
+```{python}
+Y = Y.drop(Y.loc[X['season_holidayed_code'].isna()].index)
+X = X.drop(X.loc[X['season_holidayed_code'].isna()].index)
+```
+
+```{python}
+X.shape
+```
+
+```{python}
+Y.shape
+```
+
+```{python}
+X['season_holidayed_code'] = X['season_holidayed_code'].apply(lambda x: int(x))
+```
+
+```{python}
+X.head()
+```
+
+```{python}
+X = pd.get_dummies(X, columns=['channel_code', 'main_product_code', 'resort_region_code', 'season_holidayed_code', 'member_age_buckets'], drop_first=True)
+```
+
+```{python}
+X.shape
+```
+
+```{python}
+from sklearn import svm
+from sklearn.metrics import mean_squared_error
+from sklearn.model_selection import train_test_split 
+'''
+for each_kernel in ['SVR', 'NuSVR','LinearSVR']:
+    svr = getattr(svm, 'SVR')(gamma='auto')
+    svr.fit(X_train,y_train)
+    ypred= svr.predict(X_test)
+    print(each_kernel, 100*mean_squared_error(y_test, ypred))'''
+
+```
+
+```{python}
+X_train,X_test, y_train, y_test = train_test_split(X,Y, test_size=.2)
+
+```
+
+```{python}
+X_train.shape
+```
+
+```{python}
+from sklearn.tree import DecisionTreeRegressor
+regr_1 = DecisionTreeRegressor(max_depth=7)
+regr_1.fit(X_train,y_train)
+ypred = regr_1.predict(X_test)
+print(100*mean_squared_error(y_test, ypred))
+```
+
+```{python}
+from sklearn.ensemble import RandomForestRegressor
+regr = RandomForestRegressor(max_depth=6, random_state=0,n_estimators=1000)
+regr.fit(X_train,y_train)
+ypred = regr.predict(X_test)
+print(100*mean_squared_error(y_test, ypred))
+```
+
+## So regular regression algorithms dont yield any good results
+
+```{python}
+import keras
+```
+
+```{python}
+# !pip install keras
+```
+
+```{python}
+# !pip install tensorflow
+```
+
+```{python}
+python3 -m pip install --upgrade https://storage.googleapis.com/tensorflow/mac/cpu/tensorflow-1.12.0-py3-none-any.whl
+```
+
+```{python}
+# !pip install --upgrade tensorflow
+```
+
+```{python}
+import keras
+```
+
+```{python}
+from keras.callbacks import ModelCheckpoint
+
+```
+
+```{python}
+
+```
